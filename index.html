@@ -1,0 +1,1814 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Espetinhos Amigo Meu | Churrascaria Casual</title>
+    <meta name="description" content="Espetinhos artesanais grelhados na brasa. Sabor caseiro com a qualidade que você merece.">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    
+    <style>
+        /* ===== CSS VARIABLES ===== */
+        :root {
+            --charcoal: #1a1a1a;
+            --flame-orange: #ff4500;
+            --smoke-gray: #696969;
+            --cream: #fffdd0;
+            --deep-red: #8b0000;
+            --flame-yellow: #ff6b35;
+            --ember-glow: #ff8c00;
+            --dark-brown: #2d1810;
+            --wood-texture: #3d2914;
+        }
+
+        /* ===== RESET & BASE ===== */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--charcoal);
+            color: var(--cream);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* ===== LOADING SCREEN ===== */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--charcoal);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .loader.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loader-grill {
+            width: 120px;
+            height: 80px;
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .loader-grill-bars {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 40px;
+            background: linear-gradient(to bottom, var(--smoke-gray), var(--charcoal));
+            border-radius: 5px 5px 0 0;
+            display: flex;
+            justify-content: space-around;
+            padding-top: 10px;
+        }
+
+        .loader-grill-bar {
+            width: 8px;
+            height: 25px;
+            background: var(--charcoal);
+            border-radius: 2px;
+        }
+
+        .loader-flame {
+            position: absolute;
+            bottom: 40px;
+            width: 100%;
+            height: 40px;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .loader-flame-item {
+            width: 20px;
+            height: 35px;
+            background: linear-gradient(to top, var(--deep-red), var(--flame-orange), var(--flame-yellow));
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            animation: flicker 0.3s ease-in-out infinite alternate;
+        }
+
+        .loader-flame-item:nth-child(2) {
+            animation-delay: 0.1s;
+            height: 30px;
+        }
+
+        .loader-flame-item:nth-child(3) {
+            animation-delay: 0.2s;
+            height: 25px;
+        }
+
+        @keyframes flicker {
+            0% { transform: scaleY(1) translateY(0); opacity: 1; }
+            100% { transform: scaleY(1.1) translateY(-3px); opacity: 0.9; }
+        }
+
+        .loader-text {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2rem;
+            color: var(--flame-orange);
+            letter-spacing: 4px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* ===== SMOKE PARTICLES ===== */
+        .smoke-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .smoke-particle {
+            position: absolute;
+            bottom: -50px;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, rgba(105,105,105,0.3) 0%, transparent 70%);
+            border-radius: 50%;
+            filter: blur(3px);
+        }
+
+        /* ===== NAVIGATION ===== */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            transition: background 0.3s ease, padding 0.3s ease;
+        }
+
+        .navbar.scrolled {
+            background: rgba(26, 26, 26, 0.95);
+            padding: 15px 50px;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-logo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2rem;
+            color: var(--flame-orange);
+            text-decoration: none;
+            letter-spacing: 2px;
+            text-shadow: 0 0 20px rgba(255, 69, 0, 0.5);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 40px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--cream);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--flame-orange);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--flame-orange);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-menu-btn {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .nav-menu-btn span {
+            width: 30px;
+            height: 3px;
+            background: var(--cream);
+            transition: all 0.3s ease;
+        }
+
+        /* ===== HERO SECTION ===== */
+        .hero {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .hero-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(ellipse at bottom, rgba(139, 0, 0, 0.3) 0%, transparent 50%),
+                radial-gradient(ellipse at top, rgba(26, 26, 26, 1) 0%, rgba(45, 24, 16, 0.8) 100%);
+        }
+
+        .hero-fire-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(to top, var(--deep-red), transparent);
+            opacity: 0.4;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            background: var(--flame-orange);
+            color: var(--cream);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+            clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+        }
+
+        .hero-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(3rem, 10vw, 8rem);
+            line-height: 0.95;
+            color: var(--cream);
+            margin-bottom: 20px;
+            text-shadow: 0 0 60px rgba(255, 69, 0, 0.4);
+        }
+
+        .hero-title span {
+            display: block;
+            color: var(--flame-orange);
+            text-shadow: 0 0 40px rgba(255, 69, 0, 0.6);
+        }
+
+        .hero-subtitle {
+            font-size: 1.3rem;
+            color: var(--smoke-gray);
+            margin-bottom: 40px;
+            font-weight: 300;
+        }
+
+        .hero-cta {
+            display: inline-flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: var(--flame-orange);
+            color: var(--cream);
+            clip-path: polygon(15px 0, 100% 0, calc(100% - 15px) 100%, 0 100%);
+        }
+
+        .btn-primary:hover {
+            background: var(--flame-yellow);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255, 69, 0, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--cream);
+            border: 2px solid var(--cream);
+            clip-path: polygon(15px 0, 100% 0, calc(100% - 15px) 100%, 0 100%);
+        }
+
+        .btn-secondary:hover {
+            background: var(--cream);
+            color: var(--charcoal);
+            transform: translateY(-3px);
+        }
+
+        .hero-scroll {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+        }
+
+        .scroll-indicator {
+            width: 30px;
+            height: 50px;
+            border: 2px solid var(--cream);
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            padding-top: 10px;
+        }
+
+        .scroll-indicator::before {
+            content: '';
+            width: 6px;
+            height: 10px;
+            background: var(--flame-orange);
+            border-radius: 3px;
+            animation: scrollDown 1.5s ease-in-out infinite;
+        }
+
+        @keyframes scrollDown {
+            0%, 100% { transform: translateY(0); opacity: 1; }
+            50% { transform: translateY(15px); opacity: 0.3; }
+        }
+
+        /* ===== SECTION STYLES ===== */
+        section {
+            padding: 100px 50px;
+            position: relative;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-tag {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1rem;
+            color: var(--flame-orange);
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+        }
+
+        .section-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            color: var(--cream);
+            margin-bottom: 20px;
+        }
+
+        .section-divider {
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(to right, var(--flame-orange), var(--flame-yellow));
+            margin: 0 auto;
+        }
+
+        /* ===== ABOUT SECTION ===== */
+        .about {
+            background: linear-gradient(135deg, var(--charcoal) 0%, var(--dark-brown) 100%);
+        }
+
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .about-image {
+            position: relative;
+        }
+
+        .about-image-main {
+            width: 100%;
+            height: 500px;
+            background: 
+                linear-gradient(45deg, var(--deep-red) 25%, transparent 25%),
+                linear-gradient(-45deg, var(--deep-red) 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, var(--deep-red) 75%),
+                linear-gradient(-45deg, transparent 75%, var(--deep-red) 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            background-color: var(--dark-brown);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%);
+        }
+
+        .about-image-placeholder {
+            font-size: 8rem;
+        }
+
+        .about-stats {
+            position: absolute;
+            bottom: -30px;
+            right: -30px;
+            background: var(--flame-orange);
+            padding: 30px;
+            clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+        }
+
+        .about-stats h3 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 3rem;
+            color: var(--cream);
+        }
+
+        .about-stats p {
+            font-size: 0.9rem;
+            color: var(--cream);
+        }
+
+        .about-content h3 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.5rem;
+            color: var(--cream);
+            margin-bottom: 20px;
+        }
+
+        .about-content p {
+            color: var(--smoke-gray);
+            margin-bottom: 20px;
+            line-height: 1.8;
+        }
+
+        .about-features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .about-feature {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .about-feature-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--flame-orange);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .about-feature-text h4 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.1rem;
+            color: var(--cream);
+        }
+
+        .about-feature-text p {
+            font-size: 0.85rem;
+            color: var(--smoke-gray);
+            margin: 0;
+        }
+
+        /* ===== MENU SECTION ===== */
+        .menu {
+            background: var(--charcoal);
+        }
+
+        .menu-categories {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 50px;
+            flex-wrap: wrap;
+        }
+
+        .menu-category-btn {
+            padding: 12px 30px;
+            background: transparent;
+            border: 2px solid var(--smoke-gray);
+            color: var(--cream);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+        }
+
+        .menu-category-btn:hover,
+        .menu-category-btn.active {
+            background: var(--flame-orange);
+            border-color: var(--flame-orange);
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .menu-card {
+            background: var(--dark-brown);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            clip-path: polygon(0 0, 100% 0, 98% 100%, 2% 100%);
+        }
+
+        .menu-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 0;
+            background: var(--flame-orange);
+            transition: height 0.4s ease;
+        }
+
+        .menu-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .menu-card:hover::before {
+            height: 100%;
+        }
+
+        .menu-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .menu-card-icon {
+            font-size: 3rem;
+        }
+
+        .menu-card-price {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2rem;
+            color: var(--flame-orange);
+        }
+
+        .menu-card-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.8rem;
+            color: var(--cream);
+            margin-bottom: 10px;
+        }
+
+        .menu-card-desc {
+            color: var(--smoke-gray);
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+        }
+
+        .menu-card-tags {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .menu-tag {
+            padding: 5px 12px;
+            background: rgba(255, 69, 0, 0.2);
+            color: var(--flame-orange);
+            font-size: 0.8rem;
+            border-radius: 3px;
+        }
+
+        /* ===== PRICING CALCULATOR ===== */
+        .calculator {
+            background: linear-gradient(135deg, var(--dark-brown) 0%, var(--charcoal) 100%);
+        }
+
+        .calculator-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--charcoal);
+            padding: 50px;
+            border: 1px solid rgba(255, 69, 0, 0.3);
+            position: relative;
+        }
+
+        .calculator-container::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, var(--flame-orange), var(--deep-red), var(--flame-orange));
+            z-index: -1;
+            filter: blur(10px);
+            opacity: 0.5;
+        }
+
+        .calculator-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .calc-item {
+            background: var(--dark-brown);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .calc-item:hover {
+            border-left: 3px solid var(--flame-orange);
+        }
+
+        .calc-item-info h4 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.3rem;
+            color: var(--cream);
+        }
+
+        .calc-item-info p {
+            color: var(--smoke-gray);
+            font-size: 0.9rem;
+        }
+
+        .calc-item-control {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .calc-btn {
+            width: 35px;
+            height: 35px;
+            background: var(--flame-orange);
+            border: none;
+            color: var(--cream);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Bebas Neue', sans-serif;
+        }
+
+        .calc-btn:hover {
+            background: var(--flame-yellow);
+            transform: scale(1.1);
+        }
+
+        .calc-qty {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.5rem;
+            color: var(--cream);
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .calculator-total {
+            background: var(--flame-orange);
+            padding: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            clip-path: polygon(15px 0, 100% 0, calc(100% - 15px) 100%, 0 100%);
+        }
+
+        .total-label {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.8rem;
+            color: var(--cream);
+        }
+
+        .total-amount {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.5rem;
+            color: var(--cream);
+        }
+
+        /* ===== GALLERY SECTION ===== */
+        .gallery {
+            background: var(--charcoal);
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .gallery-item {
+            position: relative;
+            height: 350px;
+            overflow: hidden;
+            cursor: pointer;
+            clip-path: polygon(0 0, 100% 0, 96% 100%, 4% 100%);
+        }
+
+        .gallery-item-bg {
+            width: 100%;
+            height: 100%;
+            background: var(--dark-brown);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+            transition: transform 0.5s ease;
+        }
+
+        .gallery-item:hover .gallery-item-bg {
+            transform: scale(1.1);
+        }
+
+        .gallery-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 30px;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            transform: translateY(100%);
+            transition: transform 0.4s ease;
+        }
+
+        .gallery-item:hover .gallery-overlay {
+            transform: translateY(0);
+        }
+
+        .gallery-overlay h3 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.5rem;
+            color: var(--flame-orange);
+        }
+
+        .gallery-overlay p {
+            color: var(--smoke-gray);
+            font-size: 0.9rem;
+        }
+
+        /* ===== LOCATION SECTION ===== */
+        .location {
+            background: linear-gradient(135deg, var(--dark-brown) 0%, var(--charcoal) 100%);
+        }
+
+        .location-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .location-map {
+            height: 450px;
+            background: var(--charcoal);
+            border: 2px solid var(--flame-orange);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .location-map-placeholder {
+            text-align: center;
+            z-index: 2;
+        }
+
+        .location-map-placeholder .icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .location-map-placeholder h3 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2rem;
+            color: var(--cream);
+        }
+
+        .location-map-placeholder p {
+            color: var(--smoke-gray);
+        }
+
+        .location-map::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(90deg, transparent 49%, rgba(255,69,0,0.1) 49%, rgba(255,69,0,0.1) 51%, transparent 51%),
+                linear-gradient(0deg, transparent 49%, rgba(255,69,0,0.1) 49%, rgba(255,69,0,0.1) 51%, transparent 51%);
+            background-size: 50px 50px;
+        }
+
+        .location-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .location-info h3 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.5rem;
+            color: var(--cream);
+            margin-bottom: 30px;
+        }
+
+        .location-details {
+            margin-bottom: 40px;
+        }
+
+        .location-detail {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 25px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid rgba(105, 105, 105, 0.3);
+        }
+
+        .location-detail-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--flame-orange);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .location-detail-text h4 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.3rem;
+            color: var(--cream);
+            margin-bottom: 5px;
+        }
+
+        .location-detail-text p {
+            color: var(--smoke-gray);
+        }
+
+        .location-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 30px;
+            background: var(--flame-orange);
+            color: var(--cream);
+            text-decoration: none;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+        }
+
+        .location-btn:hover {
+            background: var(--flame-yellow);
+            transform: translateY(-3px);
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            background: var(--charcoal);
+            padding: 60px 50px 30px;
+            border-top: 1px solid rgba(255, 69, 0, 0.3);
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 40px;
+            max-width: 1400px;
+            margin: 0 auto 40px;
+        }
+
+        .footer-brand h3 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2rem;
+            color: var(--flame-orange);
+            margin-bottom: 15px;
+        }
+
+        .footer-brand p {
+            color: var(--smoke-gray);
+            line-height: 1.8;
+        }
+
+        .footer-links h4 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.3rem;
+            color: var(--cream);
+            margin-bottom: 20px;
+        }
+
+        .footer-links ul {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 10px;
+        }
+
+        .footer-links a {
+            color: var(--smoke-gray);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--flame-orange);
+        }
+
+        .footer-social {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .social-icon {
+            width: 45px;
+            height: 45px;
+            background: var(--dark-brown);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .social-icon:hover {
+            background: var(--flame-orange);
+            transform: translateY(-5px);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(105, 105, 105, 0.3);
+        }
+
+        .footer-bottom p {
+            color: var(--smoke-gray);
+            font-size: 0.9rem;
+        }
+
+        /* ===== FIRE EMBERS ===== */
+        .embers-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .ember {
+            position: absolute;
+            bottom: -20px;
+            width: 8px;
+            height: 8px;
+            background: var(--flame-orange);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--flame-orange), 0 0 20px var(--flame-yellow);
+        }
+
+        /* ===== REDUCED MOTION ===== */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+
+            .loader-flame-item {
+                animation: none;
+            }
+
+            .scroll-indicator::before {
+                animation: none;
+            }
+
+            .smoke-particle,
+            .ember {
+                display: none;
+            }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1024px) {
+            section {
+                padding: 80px 30px;
+            }
+
+            .about-grid,
+            .location-grid {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 15px 20px;
+            }
+
+            .nav-links {
+                position: fixed;
+                top: 0;
+                right: -100%;
+                width: 80%;
+                height: 100vh;
+                background: var(--charcoal);
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                transition: right 0.3s ease;
+            }
+
+            .nav-links.active {
+                right: 0;
+            }
+
+            .nav-menu-btn {
+                display: flex;
+                z-index: 1001;
+            }
+
+            .hero-cta {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+
+            .calculator-container {
+                padding: 30px 20px;
+            }
+
+            .calculator-total {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .footer-social {
+                justify-content: center;
+            }
+
+            .location-detail {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .location-detail-icon {
+                margin: 0 auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .menu-grid,
+            .gallery-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .about-features {
+                grid-template-columns: 1fr;
+            }
+
+            .calc-item {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loader" id="loader">
+        <div class="loader-grill">
+            <div class="loader-flame">
+                <div class="loader-flame-item"></div>
+                <div class="loader-flame-item"></div>
+                <div class="loader-flame-item"></div>
+            </div>
+            <div class="loader-grill-bars">
+                <div class="loader-grill-bar"></div>
+                <div class="loader-grill-bar"></div>
+                <div class="loader-grill-bar"></div>
+                <div class="loader-grill-bar"></div>
+                <div class="loader-grill-bar"></div>
+            </div>
+        </div>
+        <div class="loader-text">ACENDENDO A BRASA...</div>
+    </div>
+
+    <!-- Smoke Particles -->
+    <div class="smoke-container" id="smokeContainer"></div>
+
+    <!-- Fire Embers -->
+    <div class="embers-container" id="embersContainer"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <a href="#" class="nav-logo">AMIGO MEU</a>
+        <ul class="nav-links" id="navLinks">
+            <li><a href="#about">Sobre</a></li>
+            <li><a href="#menu">Cardápio</a></li>
+            <li><a href="#calculator">Pedir</a></li>
+            <li><a href="#gallery">Galeria</a></li>
+            <li><a href="#location">Localização</a></li>
+        </ul>
+        <div class="nav-menu-btn" id="menuBtn">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+        <div class="hero-bg" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;">
+            <video autoplay muted loop playsinline style="position:absolute;width:100%;height:100%;object-fit:cover;opacity:0.4;" poster="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=1920&h=1080&fit=crop">
+                <source src="https://videos.pexels.com/video-files/5548033/5548033-hd_1920_1080_25fps.mp4" type="video/mp4">
+            </video>
+        </div>
+        <div class="hero-fire-overlay"></div>
+        <div class="hero-content">
+            <div class="hero-badge">DESDE 2010</div>
+            <h1 class="hero-title">
+                ESPETINHOS
+                <span>AMIGO MEU</span>
+            </h1>
+            <p class="hero-subtitle">Sabor artesanal grelhado na brasa com carinho de amigo</p>
+            <div class="hero-cta">
+                <a href="#menu" class="btn btn-primary">VER CARDÁPIO</a>
+                <a href="#location" class="btn btn-secondary">COMO CHEGAR</a>
+            </div>
+        </div>
+        <div class="hero-scroll">
+            <div class="scroll-indicator"></div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about" id="about">
+        <div class="section-header">
+            <p class="section-tag">NOSSA HISTÓRIA</p>
+            <h2 class="section-title">TRADIÇÃO & SABOR</h2>
+            <div class="section-divider"></div>
+        </div>
+        <div class="about-grid">
+            <div class="about-image">
+                <div class="about-image-main">
+                    <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=500&h=500&fit=crop" alt="Espetinhos artesanais" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-md);">
+                </div>
+                <div class="about-stats">
+                    <h3>14+</h3>
+                    <p>Anos servindo amigos</p>
+                </div>
+            </div>
+            <div class="about-content">
+                <h3>MAIS QUE UM ESPETINHO, UMA AMIZADE</h3>
+                <p>
+                    Desde 2010, o Espetinhos Amigo Meu é ponto de encontro de quem busca sabor 
+                    caseiro e aquele papo bom entre amigos. Nascemos da paixão pelo churrasco 
+                    artesanal e do desejo de criar um espaço acolhedor para todos.
+                </p>
+                <p>
+                    Nossos espetinhos são preparados com carnes selecionadas, temperados com 
+                    segredos de família e grelhados na brasa por mestres churrasqueiros que 
+                    conhecem cada ponto da carne.
+                </p>
+                <div class="about-features">
+                    <div class="about-feature">
+                        <div class="about-feature-icon">🥩</div>
+                        <div class="about-feature-text">
+                            <h4>Carnes Selecionadas</h4>
+                            <p>Qualidade premium</p>
+                        </div>
+                    </div>
+                    <div class="about-feature">
+                        <div class="about-feature-icon">🔥</div>
+                        <div class="about-feature-text">
+                            <h4>Brasa Autêntica</h4>
+                            <p>Fogueira de verdade</p>
+                        </div>
+                    </div>
+                    <div class="about-feature">
+                        <div class="about-feature-icon">👨‍🍳</div>
+                        <div class="about-feature-text">
+                            <h4>Mestres Churrasqueiros</h4>
+                            <p>Expertise garantida</p>
+                        </div>
+                        </div>
+                    <div class="about-feature">
+                        <div class="about-feature-icon">❤️</div>
+                        <div class="about-feature-text">
+                            <h4>Ambiente Acolhedor</h4>
+                            <p>Sentimento de casa</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Menu Section -->
+    <section class="menu" id="menu">
+        <div class="section-header">
+            <p class="section-tag">NOSSO CARDÁPIO</p>
+            <h2 class="section-title">ESCOLHA SEU FAVORITO</h2>
+            <div class="section-divider"></div>
+        </div>
+        <div class="menu-categories">
+            <button class="menu-category-btn active" data-category="all">TODOS</button>
+            <button class="menu-category-btn" data-category="bovino">BOVINO</button>
+            <button class="menu-category-btn" data-category="suino">SUÍNO</button>
+            <button class="menu-category-btn" data-category="frango">FRANGO</button>
+            <button class="menu-category-btn" data-category="especial">ESPECIAL</button>
+        </div>
+        <div class="menu-grid" id="menuGrid">
+            <!-- Menu items will be populated by JS -->
+        </div>
+    </section>
+
+    <!-- Calculator Section -->
+    <section class="calculator" id="calculator">
+        <div class="section-header">
+            <p class="section-tag">FAÇA SEU PEDIDO</p>
+            <h2 class="section-title">CALCULADORA DE PEDIDO</h2>
+            <div class="section-divider"></div>
+        </div>
+        <div class="calculator-container">
+            <div class="calculator-items" id="calculatorItems">
+                <!-- Calculator items will be populated by JS -->
+            </div>
+            <div class="calculator-total">
+                <span class="total-label">TOTAL:</span>
+                <span class="total-amount" id="totalAmount">R$ 0,00</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section class="gallery" id="gallery">
+        <div class="section-header">
+            <p class="section-tag">MEMÓRIAS</p>
+            <h2 class="section-title">GALERIA DE MOMENTOS</h2>
+            <div class="section-divider"></div>
+        </div>
+        <div class="gallery-grid">
+            <div class="gallery-item">
+                <div class="gallery-item-bg">
+                    <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&h=300&fit=crop" alt="Espetinhos na brasa" style="width:100%;height:100%;object-fit:cover;">
+                </div>
+                <div class="gallery-overlay">
+                    <h3>Espetinhos na Brasa</h3>
+                    <p>O momento da grelhação perfeita</p>
+                </div>
+            </div>
+            <div class="gallery-item">
+                <div class="gallery-item-bg">
+                    <img src="https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=400&h=300&fit=crop" alt="Família e amigos" style="width:100%;height:100%;object-fit:cover;">
+                </div>
+                <div class="gallery-overlay">
+                    <h3>Família e Amigos</h3>
+                    <p>O melhor da confraternização</p>
+                </div>
+            </div>
+            <div class="gallery-item">
+                <div class="gallery-item-bg">
+                    <img src="https://images.unsplash.com/photo-1535958636474-b021ee887b13?w=400&h=300&fit=crop" alt="Cerveja gelada" style="width:100%;height:100%;object-fit:cover;">
+                </div>
+                <div class="gallery-overlay">
+                    <h3>Cerveja Gelada</h3>
+                    <p>A combinação perfeita</p>
+                </div>
+            </div>
+            <div class="gallery-item">
+                <div class="gallery-item-bg">
+                    <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=300&fit=crop" alt="Eventos especiais" style="width:100%;height:100%;object-fit:cover;">
+                </div>
+                <div class="gallery-overlay">
+                    <h3>Eventos Especiais</h3>
+                    <p>Celebre conosco</p>
+                </div>
+            </div>
+            <div class="gallery-item">
+                <div class="gallery-item-bg">
+                    <img src="https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400&h=300&fit=crop" alt="Fogueira acesa" style="width:100%;height:100%;object-fit:cover;">
+                </div>
+                <div class="gallery-overlay">
+                    <h3>Fogueira Acesa</h3>
+                    <p>A brasa que não apaga</p>
+                </div>
+            </div>
+            <div class="gallery-item">
+                <div class="gallery-item-bg">
+                    <img src="https://images.unsplash.com/photo-1551218808-94e220e084d2?w=400&h=300&fit=crop" alt="Avaliações 5 estrelas" style="width:100%;height:100%;object-fit:cover;">
+                </div>
+                <div class="gallery-overlay">
+                    <h3>Avaliações 5 Estrelas</h3>
+                    <p>Nossos clientes aprovam</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Location Section -->
+    <section class="location" id="location">
+        <div class="section-header">
+            <p class="section-tag">VENHA NOS VISITAR</p>
+            <h2 class="section-title">COMO CHEGAR</h2>
+            <div class="section-divider"></div>
+        </div>
+        <div class="location-grid">
+            <div class="location-map">
+                <div class="location-map-placeholder">
+                    <div class="icon">📍</div>
+                    <h3>ESPAÇO PARA MAPA</h3>
+                    <p>Insira seu Google Maps embed aqui</p>
+                </div>
+            </div>
+            <div class="location-info">
+                <h3>NOSSO ENDEREÇO</h3>
+                <div class="location-details">
+                    <div class="location-detail">
+                        <div class="location-detail-icon">📍</div>
+                        <div class="location-detail-text">
+                            <h4>ENDEREÇO</h4>
+                            <p>Rua das Cozinhas, 123 - Centro<br>São Paulo, SP - 01234-567</p>
+                        </div>
+                    </div>
+                    <div class="location-detail">
+                        <div class="location-detail-icon">🕐</div>
+                        <div class="location-detail-text">
+                            <h4>HORÁRIO</h4>
+                            <p>Terça a Domingo: 18h - 00h<br>Segunda: Fechado</p>
+                        </div>
+                    </div>
+                    <div class="location-detail">
+                        <div class="location-detail-icon">📞</div>
+                        <div class="location-detail-text">
+                            <h4>CONTATO</h4>
+                            <p>(11) 99999-9999<br>contato@espetinhosamigomeu.com.br</p>
+                        </div>
+                    </div>
+                    <div class="location-detail">
+                        <div class="location-detail-icon">🅿️</div>
+                        <div class="location-detail-text">
+                            <h4>ESTACIONAMENTO</h4>
+                            <p>Estacionamento próprio gratuito<br>Vagas para 30 carros</p>
+                        </div>
+                    </div>
+                </div>
+                <a href="#" class="location-btn">
+                    COMO CHEGAR NO WAZE
+                    <span>→</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <h3>AMIGO MEU</h3>
+                <p>
+                    Desde 2010 trazendo sabor artesanal e amizade para sua mesa. 
+                    Venha fazer parte dessa história.
+                </p>
+                <div class="footer-social">
+                    <div class="social-icon">📘</div>
+                    <div class="social-icon">📸</div>
+                    <div class="social-icon">🐦</div>
+                    <div class="social-icon">📺</div>
+                </div>
+            </div>
+            <div class="footer-links">
+                <h4>NAVEGAÇÃO</h4>
+                <ul>
+                    <li><a href="#about">Sobre Nós</a></li>
+                    <li><a href="#menu">Cardápio</a></li>
+                    <li><a href="#calculator">Pedir</a></li>
+                    <li><a href="#gallery">Galeria</a></li>
+                    <li><a href="#location">Localização</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h4>SERVIÇOS</h4>
+                <ul>
+                    <li><a href="#">Delivery</a></li>
+                    <li><a href="#">Eventos</a></li>
+                    <li><a href="#">Catering</a></li>
+                    <li><a href="#">Reservas</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h4>CONTATO</h4>
+                <ul>
+                    <li><a href="#">WhatsApp</a></li>
+                    <li><a href="#">Instagram</a></li>
+                    <li><a href="#">Facebook</a></li>
+                    <li><a href="#">Email</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Espetinhos Amigo Meu. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script>
+        // ===== DATA =====
+        const menuItems = [
+            { id: 1, name: 'Espetinho de Picanha', desc: 'Picanha bovina temperada com sal grosso e ervas', price: 18.90, category: 'bovino', icon: '🥩', tags: ['Mais Pedido', 'Premium'] },
+            { id: 2, name: 'Espetinho de Alcatra', desc: 'Alcatra macia grelhada no ponto ideal', price: 15.90, category: 'bovino', icon: '🍖', tags: ['Clássico'] },
+            { id: 3, name: 'Espetinho de Fraldinha', desc: 'Fraldinha suculenta com tempero especial', price: 14.90, category: 'bovino', icon: '🥩', tags: ['Sabor Intenso'] },
+            { id: 4, name: 'Espetinho de Costela', desc: 'Costela bovina desfiada e temperada', price: 16.90, category: 'bovino', icon: '🍖', tags: ['Tradicional'] },
+            { id: 5, name: 'Espetinho de Lombo', desc: 'Lombo de porco suculento com ervas finas', price: 13.90, category: 'suino', icon: '🐷', tags: ['Macio'] },
+            { id: 6, name: 'Espetinho de Bacon', desc: 'Bacon enrolado com queijo derretido', price: 14.90, category: 'suino', icon: '🥓', tags: ['Irresistível'] },
+            { id: 7, name: 'Espetinho de Filé', desc: 'Filé de frango marinado na herbs', price: 12.90, category: 'frango', icon: '🍗', tags: ['Leve'] },
+            { id: 8, name: 'Espetinho de Asa', desc: 'Asa de frango crocante com molho especial', price: 11.90, category: 'frango', icon: '🍗', tags: ['Crocante'] },
+            { id: 9, name: 'Espetinho de Linguiça', desc: 'Linguiça artesanal defumada', price: 10.90, category: 'suino', icon: '🌭', tags: ['Defumada'] },
+            { id: 10, name: 'Combo Amigo Meu', desc: '3 espetinhos à escolha + arroz + vinagrete', price: 39.90, category: 'especial', icon: '🎉', tags: ['Promoção', 'Completo'] },
+            { id: 11, name: 'Espetinho Vegano', desc: 'Legumes grelhados com tempero especial', price: 11.90, category: 'especial', icon: '🥗', tags: ['Vegano'] },
+            { id: 12, name: 'Espetinho Premium', desc: 'Costela nobre maturada 30 dias', price: 24.90, category: 'especial', icon: '⭐', tags: ['Edição Limitada'] }
+        ];
+
+        // ===== LOADER =====
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('loader').classList.add('hidden');
+                initAnimations();
+            }, 2500);
+        });
+
+        // ===== SMOKE PARTICLES =====
+        function createSmokeParticle() {
+            const container = document.getElementById('smokeContainer');
+            const particle = document.createElement('div');
+            particle.className = 'smoke-particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDuration = (Math.random() * 3 + 4) + 's';
+            container.appendChild(particle);
+
+            gsap.to(particle, {
+                y: -(window.innerHeight + 100),
+                x: (Math.random() - 0.5) * 200,
+                opacity: 0,
+                duration: Math.random() * 3 + 4,
+                ease: 'power1.out',
+                onComplete: () => particle.remove()
+            });
+        }
+
+        // ===== EMBER PARTICLES =====
+        function createEmber() {
+            const container = document.getElementById('embersContainer');
+            const ember = document.createElement('div');
+            ember.className = 'ember';
+            ember.style.left = Math.random() * 100 + '%';
+            container.appendChild(ember);
+
+            gsap.to(ember, {
+                y: -(window.innerHeight + 50),
+                x: (Math.random() - 0.5) * 100,
+                opacity: 0,
+                duration: Math.random() * 2 + 2,
+                ease: 'power1.out',
+                onComplete: () => ember.remove()
+            });
+        }
+
+        // ===== NAVBAR =====
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 100) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // ===== MOBILE MENU =====
+        document.getElementById('menuBtn').addEventListener('click', () => {
+            document.getElementById('navLinks').classList.toggle('active');
+        });
+
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                document.getElementById('navLinks').classList.remove('active');
+            });
+        });
+
+        // ===== RENDER MENU =====
+        function renderMenu(category = 'all') {
+            const grid = document.getElementById('menuGrid');
+            const filtered = category === 'all' ? menuItems : menuItems.filter(item => item.category === category);
+            
+            grid.innerHTML = filtered.map(item => `
+                <div class="menu-card" data-category="${item.category}">
+                    <div class="menu-card-header">
+                        <div class="menu-card-icon">${item.icon}</div>
+                        <div class="menu-card-price">R$ ${item.price.toFixed(2).replace('.', ',')}</div>
+                    </div>
+                    <h3 class="menu-card-title">${item.name}</h3>
+                    <p class="menu-card-desc">${item.desc}</p>
+                    <div class="menu-card-tags">
+                        ${item.tags.map(tag => `<span class="menu-tag">${tag}</span>`).join('')}
+                    </div>
+                </div>
+            `).join('');
+
+            // Animate cards
+            gsap.from('.menu-card', {
+                y: 50,
+                opacity: 0,
+                duration: 0.5,
+                stagger: 0.1,
+                ease: 'power2.out'
+            });
+        }
+
+        // ===== MENU FILTERS =====
+        document.querySelectorAll('.menu-category-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.menu-category-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                renderMenu(btn.dataset.category);
+            });
+        });
+
+        // ===== CALCULATOR =====
+        let cart = {};
+
+        function renderCalculator() {
+            const container = document.getElementById('calculatorItems');
+            const items = menuItems.slice(0, 6); // Show top 6 items
+            
+            container.innerHTML = items.map(item => `
+                <div class="calc-item">
+                    <div class="calc-item-info">
+                        <h4>${item.icon} ${item.name}</h4>
+                        <p>R$ ${item.price.toFixed(2).replace('.', ',')} cada</p>
+                    </div>
+                    <div class="calc-item-control">
+                        <button class="calc-btn" onclick="updateCart(${item.id}, -1)">-</button>
+                        <span class="calc-qty" id="qty-${item.id}">${cart[item.id] || 0}</span>
+                        <button class="calc-btn" onclick="updateCart(${item.id}, 1)">+</button>
+                    </div>
+                </div>
+            `).join('');
+
+            updateTotal();
+        }
+
+        function updateCart(id, change) {
+            cart[id] = (cart[id] || 0) + change;
+            if (cart[id] < 0) cart[id] = 0;
+            
+            const qtyEl = document.getElementById(`qty-${id}`);
+            if (qtyEl) {
+                qtyEl.textContent = cart[id];
+                
+                // Animate the quantity change
+                gsap.from(qtyEl, {
+                    scale: 1.3,
+                    duration: 0.2,
+                    ease: 'power2.out'
+                });
+            }
+            
+            updateTotal();
+        }
+
+        function updateTotal() {
+            let total = 0;
+            for (const [id, qty] of Object.entries(cart)) {
+                const item = menuItems.find(i => i.id === parseInt(id));
+                if (item && qty > 0) {
+                    total += item.price * qty;
+                }
+            }
+            
+            const totalEl = document.getElementById('totalAmount');
+            totalEl.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
+            
+            // Animate total change
+            gsap.from(totalEl, {
+                scale: 1.05,
+                duration: 0.3,
+                ease: 'power2.out'
+            });
+        }
+
+        // ===== GSAP ANIMATIONS =====
+        function initAnimations() {
+            gsap.registerPlugin(ScrollTrigger);
+
+            // Start smoke and ember effects
+            setInterval(createSmokeParticle, 800);
+            setInterval(createEmber, 1500);
+
+            // Hero animations
+            gsap.from('.hero-badge', { y: -50, opacity: 0, duration: 1, delay: 0.5 });
+            gsap.from('.hero-title', { y: 50, opacity: 0, duration: 1, delay: 0.7 });
+            gsap.from('.hero-subtitle', { y: 30, opacity: 0, duration: 1, delay: 0.9 });
+            gsap.from('.hero-cta', { y: 30, opacity: 0, duration: 1, delay: 1.1 });
+
+            // Section animations
+            gsap.utils.toArray('section').forEach(section => {
+                gsap.from(section.querySelector('.section-header'), {
+                    scrollTrigger: {
+                        trigger: section,
+                        start: 'top 80%',
+                        toggleActions: 'play none none none'
+                    },
+                    y: 50,
+                    opacity: 0,
+                    duration: 1,
+                    ease: 'power2.out'
+                });
+            });
+
+            // About section
+            gsap.from('.about-image', {
+                scrollTrigger: {
+                    trigger: '.about',
+                    start: 'top 70%'
+                },
+                x: -100,
+                opacity: 0,
+                duration: 1,
+                ease: 'power2.out'
+            });
+
+            gsap.from('.about-content', {
+                scrollTrigger: {
+                    trigger: '.about',
+                    start: 'top 70%'
+                },
+                x: 100,
+                opacity: 0,
+                duration: 1,
+                ease: 'power2.out'
+            });
+
+            // Menu cards
+            gsap.from('.menu-card', {
+                scrollTrigger: {
+                    trigger: '.menu',
+                    start: 'top 70%'
+                },
+                y: 50,
+                opacity: 0,
+                duration: 0.6,
+                stagger: 0.1,
+                ease: 'power2.out'
+            });
+
+            // Calculator
+            gsap.from('.calculator-container', {
+                scrollTrigger: {
+                    trigger: '.calculator',
+                    start: 'top 70%'
+                },
+                y: 50,
+                opacity: 0,
+                duration: 1,
+                ease: 'power2.out'
+            });
+
+            // Gallery items
+            gsap.from('.gallery-item', {
+                scrollTrigger: {
+                    trigger: '.gallery',
+                    start: 'top 70%'
+                },
+                y: 50,
+                opacity: 0,
+                duration: 0.6,
+                stagger: 0.1,
+                ease: 'power2.out'
+            });
+
+            // Location
+            gsap.from('.location-map', {
+                scrollTrigger: {
+                    trigger: '.location',
+                    start: 'top 70%'
+                },
+                x: -100,
+                opacity: 0,
+                duration: 1,
+                ease: 'power2.out'
+            });
+
+            gsap.from('.location-info', {
+                scrollTrigger: {
+                    trigger: '.location',
+                    start: 'top 70%'
+                },
+                x: 100,
+                opacity: 0,
+                duration: 1,
+                ease: 'power2.out'
+            });
+        }
+
+        // ===== INITIALIZE =====
+        renderMenu();
+        renderCalculator();
+    </script>
+</body>
+</html>
